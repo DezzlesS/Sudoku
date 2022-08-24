@@ -6,11 +6,15 @@ html(lang="en")
         link(rel="stylesheet", href="style.css")
     body
         #field
-            - for (let i = 0; i < 3; i++)
+            //- - for (let i = 0; i < 3; i++)
+            //-     .row
+            //-         - for (let i = 0; i < 3; i++)
+            //-             .box
+            //-                 - for (let i = 0; i < 9; i++)
+            //-                     .cell(data-col=i)
+            - for (let y = 1; y <= 9; y++)
                 .row
-                    - for (let i = 0; i < 3; i++)
-                        .box
-                            - for (let i = 0; i < 9; i++)
-                                .cell
+                    - for (let x = 1; x <= 9; x++)
+                        .cell(data-col=x data-row=y)
         <script src="./node_modules/jquery/dist/jquery.min.js"></script>
         <script type="module" src="./js.js"></script>

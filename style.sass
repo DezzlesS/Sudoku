@@ -9,21 +9,17 @@ body
     background: #515a70
     align-self: center
     justify-self: center
-    margin: auto
+    margin: 100px auto 0 auto
+    font: 35px Segoe UI light
+    color: #000000d1
+    user-select: none
 
 .row
     display: flex
-    &:not(&:last-of-type)
+    &:nth-of-type(3n) .cell
         border-bottom: 2px solid #1b1c1f
-
-.box
-    display: flex
-    width: 210px
-    flex-wrap: wrap
-    justify-content: center
-    align-items: center
-    &:not(&:last-of-type)
-        border-right: 2px solid #1b1c1f
+    &:last-of-type .cell
+        border-bottom: none
 
 .cell
     display: flex
@@ -32,14 +28,49 @@ body
     width: 70px
     height: 70px
     background: #383a40
-    // flex: 100%
     box-sizing: border-box
     border-right: 1px solid #2e2e2e
     border-bottom: 1px solid #2e2e2e
     &:nth-of-type(3n)
+        border-right: 2px solid #1b1c1f
+    &:last-of-type
         border-right: none
-    &:nth-of-type(n+7)
-        border-bottom: none
+    
+.--active
+    background: #43454c
+.--adjacent
+    background: #32343a
+.--sameDigit
+    background: #2b2d32
+// .row
+//     display: flex
+//     &:not(&:last-of-type)
+//         border-bottom: 2px solid #1b1c1f
+
+// .box
+//     display: flex
+//     width: 210px
+//     flex-wrap: wrap
+//     justify-content: center
+//     align-items: center
+//     &:not(&:last-of-type)
+//         border-right: 2px solid #1b1c1f
+
+// .cell
+//     display: flex
+//     align-items: center
+//     justify-content: center
+//     width: 70px
+//     height: 70px
+//     background: #383a40
+//     // flex: 100%
+//     box-sizing: border-box
+//     border-right: 1px solid #2e2e2e
+//     border-bottom: 1px solid #2e2e2e
+//     &:nth-of-type(3n)
+//         border-right: none
+//     &:nth-of-type(n+7)
+//         border-bottom: none
     
         
 
