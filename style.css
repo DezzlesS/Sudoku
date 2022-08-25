@@ -52,6 +52,10 @@ body {
   background: #32343a;
 }
 
-.--sameDigit {
+[input] {
+  color: #c4c5c9d1;
+}
+
+.--similar {
   background: #2b2d32;
 }
