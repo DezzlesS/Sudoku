@@ -35,11 +35,8 @@ function domAssemble(main) {
 class Sudoku {
     constructor() {
         Object.assign(this, new domAssemble(this))
-        this.gridCount = 0;
 
         this.startNewGame();
-
-        console.log(this.gridCount);
     }
 
 
@@ -65,7 +62,7 @@ class Sudoku {
         if (
             !this.target?.attr('input') ||
             this.target?.text() === key ||
-            !/[0-9]/.test(key)
+            !/[1-9]/.test(key)
         ) return;
         
         this.target.text(key);
@@ -139,13 +136,16 @@ class Sudoku {
 
 
     generateGrid() {
+        let  gridCount = 0;
         do {
             this.correctGrid = this.generate();
-            this.gridCount++;
+            gridCount++;
         }
         while (this.correctGrid === undefined);
         
         this.correctValues = this.correctGrid.flat();
+
+        console.log(gridCount);
     }
     generatePlayGrid() {
         this.displayValues = this.correctValues.map(
