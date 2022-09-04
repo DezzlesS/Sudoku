@@ -1,6 +1,7 @@
 body
     display: flex
     background: #0e0e0e
+    display: flex
 
 #field
     display: flex
@@ -27,7 +28,7 @@ body
     justify-content: center
     width: 70px
     height: 70px
-    background: #383a40
+    background: #9a9dab
     box-sizing: border-box
     border-right: 1px solid #2e2e2e
     border-bottom: 1px solid #2e2e2e
@@ -37,13 +38,32 @@ body
         border-right: none
     
 .--active
-    background: #43454c
+    background: #abaebd
 .--adjacent
-    background: #32343a
+    background: #81889f
 [input]
-    color: #c4c5c9d1
+    color: #c0e2ff
 .--similar
-    background: #2b2d32
+    background: #7587a1
+
+
+#controlPanel
+    margin: auto
+    background: #555d6c
+    padding: 20px
+    border: 1px solid #161616
+    border-radius: 5px
+    font: 22px Arial
+    color: #242222
+.button
+    padding: 10px
+    background: #9191a1
+    border-radius: 4px
+    cursor: pointer
+    border: 1px solid #424242
+    &:hover
+        background: #aeaec9
+        
 // .row
 //     display: flex
 //     &:not(&:last-of-type)

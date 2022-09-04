@@ -22,9 +22,11 @@ function domAssemble(main) {
         ))
     );
 
+    $('#newGame').on('click', main.startNewGame.bind(main));
+
     $(document).on('keydown', ({key}) => {
         switch (key) {
-            case 'Backspace': main.cellClear();    break;
+            case 'Backspace': main.cellClear()   ; break;
             default         : main.cellInput(key); break;
         }
     })
@@ -33,21 +35,13 @@ function domAssemble(main) {
 class Sudoku {
     constructor() {
         Object.assign(this, new domAssemble(this))
-        let gridCount = 0;
+        this.gridCount = 0;
 
-        do    {this.correctGrid = this.generateGrid(); gridCount++}
-        while (this.correctGrid === undefined);
+        this.startNewGame();
 
-        
-        this.correctValues = this.correctGrid.flat();
-
-        this.playGrid = this.generatePlayGrid();
-        this.displayGrid();
-
-        this.revealedCells = collectRevealedCells(this.cells);
-
-        console.log(gridCount);
+        console.log(this.gridCount);
     }
+
 
     cellClick({target}) {
         if (
@@ -103,15 +97,13 @@ class Sudoku {
         this.deleteFromPlayGrid();
     }
 
-
-
     setAdjacentsHighlight(
         [col, row] = this.targetCoordinates
     ) {
         this.highlightItems = $([
-            ...this.boxes[findBox(col+1, row+1)],
             ...this.columns[col],
-            ...this.rows[row]
+            ...this.rows[row],
+            ...this.boxes[findBox(col+1, row+1)]
         ]).addClass('--adjacent');
 
         this.target
@@ -128,8 +120,6 @@ class Sudoku {
     setSimilarsHighlight() {
         this.similars = $([...this.revealedCells[this.pickedDigit]]);
         this.similars.addClass('--similar');
-        console.log(this.similars);
-        console.log(this.pickedDigit);
     }
     removeSimilarsHighlight() {
         this.similars?.removeClass('--similar');
@@ -147,16 +137,24 @@ class Sudoku {
     }
 
 
+
+    generateGrid() {
+        do {
+            this.correctGrid = this.generate();
+            this.gridCount++;
+        }
+        while (this.correctGrid === undefined);
+        
+        this.correctValues = this.correctGrid.flat();
+    }
     generatePlayGrid() {
         this.displayValues = this.correctValues.map(
             v => round(random())
                 ? v
                 : ''
         );
-        const playGrid = [...Array(9)].map((_,i) => this.displayValues.slice(i*9, i*9+9)); 
-        return playGrid;
+        this.playGrid = [...Array(9)].map((_,i) => this.displayValues.slice(i*9, i*9+9));
     }
-
     displayGrid() {
         this.cells.forEach((cell, i) => {
             cell.InnerText = this.displayValues[i];
@@ -164,10 +162,11 @@ class Sudoku {
         this.displayValues.forEach((v, i) => {
             if (v) this.cells[i].innerText = v;
             else   this.cells[i].setAttribute('input', true)
-        })
+        });
+        
+        this.revealedCells = collectRevealedCells(this.cells);
     }
-
-    generateGrid() {
+    generate() {
         const grid = gridPattern();
 
         for (const digit of digits) {
@@ -227,34 +226,44 @@ class Sudoku {
     }
 
     completeCheck() {
-        this.puzzleCompleted = this.correctGrid.every((row1, i) => {
-            const row2 = this.playGrid[i];
-            return row1 === row2;
-        })
-        if (!this.puzzleCompleted) return;
+        this.puzzleCompleted = this.correctGrid.every((
+            row1, i
+        ) => row1.join() === this.playGrid[i].join());
         
+        if (this.puzzleCompleted) this.endGame();
+    }
+
+    endGame() {
         this.resetGame();
         this.congratilations();
     }
 
     congratilations() {
-        alert('Вы решили судоку. Примите поздравления от разработчика!')
+        alert('Вы решили судоку. Примите поздравления от разработчика!');
     }
 
-
+    
     resetGame() {
-        // this.cells.off('mousedown');
-        // $(document).off('keydown');
-
-        this.removeAdjacentsHighlight();
-        this.removeSimilarsHighlight();
-
+        $(document).off('keydown');
         $(this.cells)
-        //    .removeClass('--adjacent --active --similar')
-           .removeAttr('input')
-        ;
     }
     
+
+    startNewGame() {
+        this.clearField();
+        // this.reset();
+        this.generateGrid();
+        this.generatePlayGrid();
+        this.displayGrid();
+    }
+
+    clearField() {
+        $(this.cells)
+            .text('')
+            .removeAttr('input')
+            .removeClass('--active --similar --adjacent')
+        ;
+    }
 
 
     getTargetCoordinates = () => [
