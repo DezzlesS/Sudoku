@@ -24,9 +24,10 @@ function domAssemble(main) {
 
     $('#newGame').on('click', main.startNewGame.bind(main));
 
-    $(document).on('keydown', ({key}) => {
-        switch (key) {
+    $(document).on('keydown', ({code, key}) => {
+        switch (code) {
             case 'Backspace': main.cellClear()   ; break;
+            case 'KeyN'     : main.toggleNotes() ;
             default         : main.cellInput(key); break;
         }
     })
@@ -35,12 +36,12 @@ function domAssemble(main) {
 class Sudoku {
     constructor() {
         Object.assign(this, new domAssemble(this))
-
+        
         this.startNewGame();
     }
 
 
-    cellClick({target}) {
+    cellClick({delegateTarget:target}) {
         if (
             this.target?.data('index') ==
             target.dataset.index
@@ -48,12 +49,13 @@ class Sudoku {
 
         this.removeAdjacentsHighlight();
         this.target = $(target);
-        this.targetCoordinates = this.getTargetCoordinates();
+        this.targetXY = this.getTargetCoordinates();
         this.setAdjacentsHighlight();
         
         this.removeSimilarsHighlight();
-        if (target.innerText) {
-            this.pickedDigit = target.innerText;
+        const value = $(target).children('.value').text();
+        if (value) {
+            this.pickedDigit = value;
             this.setSimilarsHighlight();
         }
     }
@@ -61,46 +63,120 @@ class Sudoku {
     cellInput(key) {
         if (
             !this.target?.attr('input') ||
-            this.target?.text() === key ||
+            (this.target?.data('value') === key && !this.notesOn) ||
             !/[1-9]/.test(key)
         ) return;
         
-        this.target.text(key);
+        if (this.notesOn) {
+            this.cellClear();
+            this.placeNotes(key);
+            return;
+        }
+
+        this.clearNotes();
+
+        this.target.children('.value').text(key);
+        this.target.attr('data-value', key);
 
         this.removeSimilar();
+
         this.lastInput = key;
         
         this.addToPlayGrid();
 
         this.addSimilar();
+
         this.removeSimilarsHighlight();
         this.setSimilarsHighlight();
+
+        // this.setErrorsHighlight();
 
 
         this.completeCheck();
     }
 
+    clearNotes() {
+        this.notes[this.target.data('index')].clear();
+        this.target.find('span').text('');
+    }
+
+    placeNotes(key) {
+
+        let targetNotes = this.notes[this.target.data('index')];
+        const targetSpans = this.target.find('span');
+
+        console.log(targetNotes);
+        console.log(targetSpans);
+
+        // console.log(targetNotes);
+
+        if (targetNotes.has(key))
+             targetNotes.delete(key);
+        else targetNotes.add(key);
+        
+        targetSpans.text('');
+        [...targetNotes].forEach(n => targetSpans[n-1].innerHTML = n);
+
+        // console.log(targetNotes);
+        
+        // let notesPattern = ['','','','','','','','',''];
+        // const targetSpans = $([...noteSpansPattern]);
+        
+        // this.target.html(
+        //     $('<div class="notes">').append(targetSpans)
+        // );
+        
+        // console.log(targetSpans);
+
+
+    }
+
+
+
     cellClear() {
         if (
             !this.target.attr('input') ||
-            !this.target.text()
+            !this.target.data('value')
         ) return;
 
         
-        this.target.text('');
+        this.target.children('.value').text('');
+        this.target.attr('data-value', '');
+
         this.removeSimilar();
         this.removeSimilarsHighlight();
         
         this.deleteFromPlayGrid();
     }
 
+
+
+
+
+    addToPlayGrid() {
+        const [col, row] = this.targetXY;
+
+        this.playGrid[row][col] = this.lastInput;
+    }
+    deleteFromPlayGrid() {
+        const [col, row] = this.targetXY;
+
+        this.playGrid[row][col] = '';
+    }
+
+
+
+
+
+
+
     setAdjacentsHighlight(
-        [col, row] = this.targetCoordinates
+        [col, row] = this.targetXY
     ) {
         this.highlightItems = $([
             ...this.columns[col],
             ...this.rows[row],
-            ...this.boxes[findBox(col+1, row+1)]
+            ...this.boxes[findBox(col+1, row+1) - 1]
         ]).addClass('--adjacent');
 
         this.target
@@ -133,7 +209,26 @@ class Sudoku {
         this.target.removeClass('--similar');
     }
 
+    setErrorsHighlight() {
+        const 
+            [col, row] = this.targetXY
+            this.columns[col]
+        ;
+        this.errors = this.similars.filter((_,cell) => cell.dataset.value === this.target.data('value'))
+        console.log(this.errors);
+        this.errors.addClass('--error');
+    }
 
+
+
+
+
+    startNewGame() {
+        this.clearField();
+        this.generateGrid();
+        this.generatePlayGrid();
+        this.displayGrid();
+    }
 
     generateGrid() {
         let  gridCount = 0;
@@ -144,6 +239,9 @@ class Sudoku {
         while (this.correctGrid === undefined);
         
         this.correctValues = this.correctGrid.flat();
+        
+        this.notes = this.cells.map(() => new Set());
+        this.notesOn = false;
 
         console.log(gridCount);
     }
@@ -156,12 +254,12 @@ class Sudoku {
         this.playGrid = [...Array(9)].map((_,i) => this.displayValues.slice(i*9, i*9+9));
     }
     displayGrid() {
-        this.cells.forEach((cell, i) => {
-            cell.InnerText = this.displayValues[i];
-        });
         this.displayValues.forEach((v, i) => {
-            if (v) this.cells[i].innerText = v;
-            else   this.cells[i].setAttribute('input', true)
+            if (v) {
+                this.cells[i].children[0].innerText = v;
+                this.cells[i].dataset.value = v;
+            }
+            else this.cells[i].setAttribute('input', true)
         });
         
         this.revealedCells = collectRevealedCells(this.cells);
@@ -214,16 +312,17 @@ class Sudoku {
         }
     }
 
-    addToPlayGrid() {
-        const [col, row] = this.targetCoordinates;
 
-        this.playGrid[row][col] = this.lastInput;
-    }
-    deleteFromPlayGrid() {
-        const [col, row] = this.targetCoordinates;
 
-        this.playGrid[row][col] = '';
+    toggleNotes() {
+        this.notesOn = !this.notesOn;
+        console.log(this.notesOn);
     }
+
+
+    restart() {
+        new Sudoku();
+    } 
 
     completeCheck() {
         this.puzzleCompleted = this.correctGrid.every((
@@ -232,38 +331,27 @@ class Sudoku {
         
         if (this.puzzleCompleted) this.endGame();
     }
-
-    endGame() {
-        this.resetGame();
-        this.congratilations();
-    }
-
-    congratilations() {
-        alert('Вы решили судоку. Примите поздравления от разработчика!');
-    }
-
-    
-    resetGame() {
-        $(document).off('keydown');
-        $(this.cells)
-    }
-    
-
-    startNewGame() {
-        this.clearField();
-        // this.reset();
-        this.generateGrid();
-        this.generatePlayGrid();
-        this.displayGrid();
-    }
-
     clearField() {
         $(this.cells)
-            .text('')
+            .children('.value').text('')
+            .prevObject
+            .find('span').text('')
+            .prevObject
             .removeAttr('input')
             .removeClass('--active --similar --adjacent')
         ;
     }
+    endGame() {
+        this.resetGame();
+        this.congratilations();
+    }
+    resetGame() {
+        $(document).off('keydown');
+    }
+    congratilations() {
+        alert('Вы решили судоку. Примите поздравления от разработчика!');
+    }
+
 
 
     getTargetCoordinates = () => [

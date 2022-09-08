@@ -16,6 +16,10 @@ html(lang="en")
                 .row
                     - for (let x = 1; x <= 9; x++)
                         .cell(data-col=x data-row=y)
+                            .value
+                            .notes
+                                - for (let n = 1; n <= 9; n++)
+                                    span
         #controlPanel 
             #newGame.button Новая игра
         <script src="./jquery.min.js"></script>
